@@ -6,6 +6,7 @@ import { Icon, FABButton, Textfield, Menu, MenuItem, Card, CardActions, List } f
 import { MenuItemWithIcon, DropdownButton, styles as commonStyles } from '../common';
 import styles from './feature.scss';
 import { CREATE_FEATURE } from '../../permissions';
+import debounce from 'lodash.debounce';
 
 export default class FeatureListComponent extends React.Component {
     static propTypes = {
@@ -21,6 +22,13 @@ export default class FeatureListComponent extends React.Component {
         hasPermission: PropTypes.func.isRequired,
     };
 
+    constructor() {
+        super();
+        this.state = {
+            filterVal: '',
+        };
+    }
+
     componentDidMount() {
         if (this.props.fetchFeatureToggles) {
             this.props.fetchFeatureToggles();
@@ -33,9 +41,9 @@ export default class FeatureListComponent extends React.Component {
         this.props.updateSetting('showLastHour', !this.props.settings.showLastHour);
     }
 
-    setFilter(v) {
-        this.props.updateSetting('filter', typeof v === 'string' ? v : '');
-    }
+    setFilter = debounce(() => {
+        this.props.updateSetting('filterg', typeof this.state.filterVal === 'string' ? this.state.filterVal : '');
+    }, 300);
 
     setSort(v) {
         this.props.updateSetting('sort', typeof v === 'string' ? v.trim() : '');
@@ -51,9 +59,12 @@ export default class FeatureListComponent extends React.Component {
                 <div className={styles.toolbar}>
                     <Textfield
                         floatingLabel
-                        value={settings.filter}
+                        value={this.state.filterVal}
                         onChange={e => {
-                            this.setFilter(e.target.value);
+                            this.setState({
+                                filterVal: e.target.value,
+                            });
+                            this.setFilter();
                         }}
                         label="Search"
                         style={{ width: '100%' }}
